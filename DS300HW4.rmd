@@ -1,0 +1,378 @@
+---
+title: "R Notebook"
+author: "Ally Racho"
+output: html_notebook
+---
+
+Data
+```{r}
+library(readr)
+heart <- read_csv("heart.csv")
+View(heart)
+```
+```{r}
+# Heart Disease Prediction
+# Goal: To predict whether a person has a heart-disease or not.
+
+#Importing essential libraries
+knitr::opts_chunk$set(echo = TRUE)
+library(broom)
+library(ggthemes)
+
+
+## Loading required package: lattice
+## Loading required package: ggplot2
+
+library(bindrcpp)
+library(RColorBrewer)
+library(caTools)
+library(ggplot2)
+library(GGally)
+
+
+## Loading required package: rpart
+
+
+## Rattle: A free graphical interface for data science with R.
+## Version 5.2.0 Copyright (c) 2006-2018 Togaware Pty Ltd.
+## Type 'rattle()' to shake, rattle, and roll your data.
+library(dplyr)
+
+##
+## Attaching package: 'dplyr'
+## The following object is masked from 'package:GGally':
+##
+## nasa
+## The following objects are masked from 'package:stats':
+##
+## filter, lag
+## The following objects are masked from 'package:base':
+##
+## intersect, setdiff, setequal, union
+library(nnet)
+
+# Reading the dataset
+heartDiseaseData<-read.csv("heart.csv")
+#printing the head values
+head(heartDiseaseData)
+
+sum(is.na(heartDiseaseData))
+
+colnames(heartDiseaseData)[1]<-"age"
+str(heartDiseaseData)
+
+#Data-Preprocessing
+#Factoring the features
+#Target
+heartDiseaseData$target<-as.factor(heartDiseaseData$target)
+levels(heartDiseaseData$target)[levels(heartDiseaseData$target)==0] <- "Healthy"
+levels(heartDiseaseData$target)[levels(heartDiseaseData$target)==1] <- "Heart Disease"
+#Chest Pain
+heartDiseaseData$cp<-as.factor(heartDiseaseData$cp)
+levels(heartDiseaseData$cp)[levels(heartDiseaseData$cp)==0] <- "Chest Pain Type 0"
+levels(heartDiseaseData$cp)[levels(heartDiseaseData$cp)==1] <- "Chest Pain Type 1"
+levels(heartDiseaseData$cp)[levels(heartDiseaseData$cp)==2] <- "Chest Pain Type 2"
+levels(heartDiseaseData$cp)[levels(heartDiseaseData$cp)==3] <- "Chest Pain Type 3"
+#Sex
+heartDiseaseData$sex<-as.factor(heartDiseaseData$sex)
+levels(heartDiseaseData$sex)[levels(heartDiseaseData$sex)==0] <- "Female"
+levels(heartDiseaseData$sex)[levels(heartDiseaseData$sex)==1] <- "Male"
+#Thalassemia
+heartDiseaseData$thal<-as.factor(heartDiseaseData$thal)
+levels(heartDiseaseData$thal)[levels(heartDiseaseData$thal)==0] <- "No Thalassemia"
+levels(heartDiseaseData$thal)[levels(heartDiseaseData$thal)==1] <- "Normal Thalassemia"
+levels(heartDiseaseData$thal)[levels(heartDiseaseData$thal)==2] <- "Fixed Defect Thalassemia"
+levels(heartDiseaseData$thal)[levels(heartDiseaseData$thal)==3] <- "Reversible Defect Thalassemia"
+#Fasting Blood Sugar
+heartDiseaseData$fbs<-as.factor(heartDiseaseData$fbs)
+levels(heartDiseaseData$fbs)[levels(heartDiseaseData$fbs)==0] <- "Fasting Blood Sugar <= 120"
+levels(heartDiseaseData$fbs)[levels(heartDiseaseData$fbs)==1] <- "Fasting Blood Sugar > 120"
+#Exercise Induced Angina
+heartDiseaseData$exang<-as.factor(heartDiseaseData$exang)
+levels(heartDiseaseData$exang)[levels(heartDiseaseData$exang)==1] <- "Exercise Induced Angina"
+levels(heartDiseaseData$exang)[levels(heartDiseaseData$exang)==0] <- "No Exercise Induced Angina"
+#ECG
+heartDiseaseData$restecg<-as.factor(heartDiseaseData$restecg)
+levels(heartDiseaseData$restecg)[levels(heartDiseaseData$restecg)==0] <- "Rest ECG 0"
+levels(heartDiseaseData$restecg)[levels(heartDiseaseData$restecg)==1] <- "Rest ECG 1"
+levels(heartDiseaseData$restecg)[levels(heartDiseaseData$restecg)==2] <- "Rest ECG 2"
+#ST Slope
+heartDiseaseData$slope<-as.factor(heartDiseaseData$slope)
+levels(heartDiseaseData$slope)[levels(heartDiseaseData$slope)==0] <- "Peak Excercise ST Slope 0"
+levels(heartDiseaseData$slope)[levels(heartDiseaseData$slope)==1] <- "Peak Excercise ST Slope 1"
+levels(heartDiseaseData$slope)[levels(heartDiseaseData$slope)==2] <- "Peak Excercise ST Slope 2"
+str(heartDiseaseData)
+
+# Checking for missing values
+(is.na(heartDiseaseData))
+
+# Summary of the data
+summary(heartDiseaseData)
+
+# Total number of observations of heathy people and people suffering from heart disease.
+ggplot(heartDiseaseData,aes(target, fill=target)) +
+geom_bar(stat="count") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+# Heart diseases among females are higher as compared to males
+ggplot(heartDiseaseData,aes(target, fill=target)) +
+geom_bar(stat="count") +
+facet_wrap(~sex, ncol=2,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+ggplot(heartDiseaseData,aes(trestbps, fill=target)) +
+geom_histogram(aes(y=..density..),breaks=seq(90, 200, by=10), color="grey17") +
+geom_density(alpha=.1, fill="black") +
+facet_wrap(~target, ncol=1,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B")) +
+xlab("Resting Blood Pressure (in mm Hg on admission to the hospital)") +
+ylab("Density / Count") +
+ggtitle("Rest ECG Histogram")
+
+ggplot(heartDiseaseData,aes(age, fill=target)) +
+geom_histogram(aes(y=..density..),breaks=seq(0, 80, by=1), color="grey17") +
+geom_density(alpha=.1, fill="black")+ facet_wrap(~target, ncol=1,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))+ xlab("Age") +
+ylab("Density / Count") +
+ggtitle("Age Histogram")
+
+ggplot(heartDiseaseData,aes(x=target, y=age, fill=target)) +
+geom_boxplot() +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+ggplot(heartDiseaseData,aes(thalach, fill=target)) +
+geom_histogram(aes(y=..density..),breaks=seq(70, 205, by=10), color="grey17") +
+geom_density(alpha=.1, fill="black") +
+facet_wrap(~target, ncol=1,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B")) +
+xlab("Maximum Heart Rate Achieved") +
+ylab("Density / Count") +
+ggtitle("Max Heart Rate Histogram")
+
+ggplot(heartDiseaseData,aes(chol, fill=target)) +
+geom_histogram(aes(y=..density..),breaks=seq(100, 600, by=25), color="grey17") +
+geom_density(alpha=.1, fill="black") +
+facet_wrap(~target, ncol=1,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B")) +
+xlab("Serum Cholestoral in mg/dl") +
+ylab("Density / Count") +
+ggtitle("Cholestoral Histogram")
+
+ggplot(heartDiseaseData,aes(oldpeak, fill=target)) +
+geom_histogram(aes(y=..density..),breaks=seq(0, 7, by=0.1), color="grey17") +
+geom_density(alpha=.1, fill="black") +
+facet_wrap(~target, ncol=1,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B")) +
+ggtitle("ST Depression Histogram") +
+xlab("ST Depression Induced by Exercise Relative to Rest") +
+ylab("Density / Count")
+
+ggplot(heartDiseaseData,aes(ca, fill=target)) +
+geom_histogram(aes(y=..density..),breaks=seq(0, 5, by=1), color="grey17") +
+geom_density(alpha=.1, fill="black") +
+facet_wrap(~target, ncol=1,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B")) +
+ggtitle("No. Major Vessels Histogram") +
+xlab("Number of Major Vessels (0-3) Colored by Flourosopy") +
+ylab("Density / Count")
+
+ggplot(heartDiseaseData,aes(target, fill=target)) +
+geom_bar(stat="count") +
+facet_wrap(~cp, ncol=2,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+ggplot(heartDiseaseData,aes(target, fill=target)) +
+geom_bar(stat="count") +
+facet_wrap(~fbs, ncol=2,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+# People having Rest ECG-1 have a higher probability of suffering from heart diseases
+ggplot(heartDiseaseData,aes(target, fill=target)) +
+geom_bar(stat="count") +
+facet_wrap(~restecg, ncol=3,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+# People with No exercise induced angina have a higher probability of getting heart diseases
+ggplot(heartDiseaseData,aes(target, fill=target)) +
+geom_bar(stat="count") +
+facet_wrap(~exang, ncol=1,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+# People with Peak Exercise slope 2 have a higher probability of exhibiting heart diseases
+ggplot(heartDiseaseData,aes(target, fill=target)) +
+geom_bar(stat="count") +
+facet_wrap(~slope, ncol=1,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+# People with fixed defect Thalassemia have a higher probability to suffer from heart diseases
+ggplot(heartDiseaseData,aes(target, fill=target)) +
+geom_bar(stat="count") +
+facet_wrap(~thal, ncol=2,scale="fixed") +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+# dropping other parameters
+log<-glm(target~., data=heartDiseaseData, family=binomial)
+summary(log)
+
+# Summary of the significant features
+d<-heartDiseaseData[,c(2,3,9,10,12,14)]
+summary(d)
+
+# Logistic Regression
+log<-glm(target~., data=d, family=binomial)
+summary(log)
+
+log.df<-tidy(log)
+
+log.df %>%
+mutate(term=reorder(term,estimate)) %>%
+ggplot( aes(term,estimate, fill=estimate)) +
+geom_bar(stat="identity") +
+scale_fill_gradient(low = "#97BE11",high = "#DC1E0B") +
+geom_hline(yintercept=0) +
+coord_flip()
+
+ggplot(heartDiseaseData, aes(oldpeak, as.numeric(target)-1, color=sex)) +
+stat_smooth(formula=y~x,
+alpha=0.2, size=1, aes(fill=sex)) + scale_fill_manual(values=c("#97BE11","#DC1E0B"))+
+ylab("Heart Disease")
+## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+ylim(-1,1)
+
+ggplot(heartDiseaseData, aes(ca, as.numeric(target)-1, color=sex)) +
+stat_smooth(formula=y~x,
+alpha=0.2, size=1, aes(fill=sex)) + scale_fill_manual(values=c("#97BE11","#DC1E0B"))+
+ylim(-1,1)
+
+# Logistic Regression
+data<-d
+set.seed(1237)
+train <- sample(nrow(data), .8*nrow(data), replace = FALSE)
+TrainSet <- data[train,]
+ValidSet <- data[-train,]
+#Tuning parameters
+fitControl <- trainControl(method = "repeatedcv",
+number = 10,
+repeats = 10,
+classProbs = TRUE,
+summaryFunction = twoClassSummary)
+TrainSet$target<-make.names(TrainSet$target)
+set.seed(142)
+TrainSet$target<-as.factor(TrainSet$target)
+gbm.ada.1 <- caret::train(target ~ .,
+data = TrainSet ,
+method = "glm",
+trControl = fitControl,
+metric="ROC")
+
+gbm.ada.1
+
+# ST Depression is the most significant feature followed by chest paint type - 2 and so on
+varImp(gbm.ada.1)
+
+pred <- predict(gbm.ada.1,ValidSet)
+levels(pred)[2] <- "Heart Disease"
+t<-table(pred, ValidSet$target)
+t.df<-as.data.frame(t)
+res<-caret::confusionMatrix(t, positive="Heart Disease")
+res
+
+# Confusion Matrix
+ggplot(data = t.df, aes(x = Var2, y = pred, label=Freq)) +
+geom_tile(aes(fill = Freq)) +
+scale_fill_gradient(low="#97BE11",high="#DC1E0B") +
+xlab("Actual Heart Disease") +
+ylab("Predicted Heart Disease") +
+geom_text(size=8) +
+ggtitle("Logistic Regression")
+
+# Random Forest
+gbm.ada.1 <- caret::train(target ~ .,
+data = TrainSet ,
+method = "rf",
+trControl = fitControl,
+metric="ROC")
+gbm.ada.1
+
+# Feature Importance
+varImp(gbm.ada.1)
+
+pred <- predict(gbm.ada.1,ValidSet)
+levels(pred)[2] <- "Heart Disease"
+t<-table(ValidSet$target, pred)
+t.df<-as.data.frame(t)
+res<-caret::confusionMatrix(t, positive="Heart Disease")
+res
+
+# Confusion Matrix
+ggplot(data = t.df, aes(x = Var1, y = pred, label=Freq)) +
+geom_tile(aes(fill = Freq)) +
+scale_fill_gradient(low = "#97BE11",high = "#DC1E0B") +
+xlab("Actual Heart Disease") +
+ylab("Predicted Heart Disease") +
+geom_text(size=8) +
+ggtitle("Random Forest")
+
+# Plotting Decision Tree
+gbmGrid <- expand.grid(cp=c(0.01))
+fitControl <- trainControl(method = "repeatedcv",
+number = 10,
+repeats = 10,
+classProbs = TRUE,
+summaryFunction = twoClassSummary)
+d$target<-make.names(d$target)
+system.time(gbm.ada.1 <- caret::train(target ~ .,
+data = d ,
+method = "rpart",
+trControl = fitControl,
+metric="ROC",
+tuneGrid=gbmGrid))
+
+gbm.ada.1
+
+## Tuning parameter 'cp' was held constant at a value of 0.01
+varImp(gbm.ada.1)
+
+# plot decision tree
+rpart.plot(gbm.ada.1$finalModel,
+type=5,
+fallen.leaves = FALSE,
+box.palette = "GnRd",
+nn=TRUE)
+
+# Neural Network
+fitControl <- trainControl(method = "repeatedcv",
+number = 10,
+repeats = 10,
+classProbs = TRUE,
+summaryFunction = twoClassSummary)
+gbm.ada.1 <- caret::train(target ~ .,
+data = TrainSet ,
+method = "nnet",
+trControl = fitControl,
+metric="ROC")
+
+gbm.ada.1
+
+# Variable importance
+varImp(gbm.ada.1)
+
+pred <- predict(gbm.ada.1,ValidSet)
+levels(pred)[2] <- "Heart Disease"
+t<-table(ValidSet$target, pred)
+t.df<-as.data.frame(t)
+res<-caret::confusionMatrix(t, positive="Heart Disease")
+res
+
+# Confusion Matrix
+ggplot(data = t.df, aes(x = Var1, y = pred, label=Freq)) +
+geom_tile(aes(fill = Freq)) +
+scale_fill_gradient(low = "#97BE11",high = "#DC1E0B") +
+theme_clean() +
+xlab("Actual Heart Disease") +
+ylab("Predicted Heart Disease") +
+geom_text(size=8) +
+ggtitle("Neural Network")
+
+```
