@@ -376,3 +376,24 @@ geom_text(size=8) +
 ggtitle("Neural Network")
 
 ```
+
+Uniform Distribution (2 diff plots):
+```{r}
+library(car)
+library(pe)
+perturb(mod, pvars = NULL, prange = NULL, ptrans = NULL,
+pfac = NULL, uniform = FALSE, niter = 100)
+# S3 method for perturb
+summary(object,dec.places=3,full=FALSE,...)
+
+# S3 method for perturb
+print.summary(x,...)
+```
+
+
+Gaussain Distribution (2 plots):
+
+
+
+
+
