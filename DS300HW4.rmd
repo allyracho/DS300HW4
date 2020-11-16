@@ -3,13 +3,12 @@ title: "R Notebook"
 author: "Ally Racho"
 output: html_notebook
 ---
-
-Data
 ```{r}
 library(readr)
 heart <- read_csv("heart.csv")
 View(heart)
 ```
+
 ```{r}
 # Heart Disease Prediction
 # Goal: To predict whether a person has a heart-disease or not.
@@ -111,7 +110,7 @@ summary(heartDiseaseData)
 
 # Total number of observations of heathy people and people suffering from heart disease.
 ggplot(heartDiseaseData,aes(target, fill=target)) +
-geom_bar(stat="count") +
+geom_bar(stat="count") + 
 scale_fill_manual(values=c("#97BE11","#DC1E0B"))
 
 # Heart diseases among females are higher as compared to males
@@ -132,7 +131,7 @@ ggtitle("Rest ECG Histogram")
 ggplot(heartDiseaseData,aes(age, fill=target)) +
 geom_histogram(aes(y=..density..),breaks=seq(0, 80, by=1), color="grey17") +
 geom_density(alpha=.1, fill="black")+ facet_wrap(~target, ncol=1,scale="fixed") +
-scale_fill_manual(values=c("#97BE11","#DC1E0B"))+ xlab("Age") +
+ scale_fill_manual(values=c("#97BE11","#DC1E0B"))+ xlab("Age") +
 ylab("Density / Count") +
 ggtitle("Age Histogram")
 
@@ -234,8 +233,7 @@ coord_flip()
 
 ggplot(heartDiseaseData, aes(oldpeak, as.numeric(target)-1, color=sex)) +
 stat_smooth(formula=y~x,
-alpha=0.2, size=1, aes(fill=sex)) + scale_fill_manual(values=c("#97BE11","#DC1E0B"))+
-ylab("Heart Disease")
+alpha=0.2, size=1, aes(fill=sex)) + scale_fill_manual(values=c("#97BE11","#DC1E0B"))+ ylab("Heart Disease")
 ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
 ylim(-1,1)
@@ -309,6 +307,7 @@ res
 ggplot(data = t.df, aes(x = Var1, y = pred, label=Freq)) +
 geom_tile(aes(fill = Freq)) +
 scale_fill_gradient(low = "#97BE11",high = "#DC1E0B") +
+theme_clean() +
 xlab("Actual Heart Disease") +
 ylab("Predicted Heart Disease") +
 geom_text(size=8) +
@@ -369,27 +368,102 @@ res
 ggplot(data = t.df, aes(x = Var1, y = pred, label=Freq)) +
 geom_tile(aes(fill = Freq)) +
 scale_fill_gradient(low = "#97BE11",high = "#DC1E0B") +
-theme_clean() +
 xlab("Actual Heart Disease") +
 ylab("Predicted Heart Disease") +
 geom_text(size=8) +
 ggtitle("Neural Network")
 
+
 ```
 
-Uniform Distribution (2 diff plots):
+Uniform Distribution:
 ```{r}
-install.packages("perturb")
+library(car)
+attach(heart)
+
+x = sample(heart)
+ind = rbinom(length(x), 1, 0.5) == 1
+x[ind] = x[ind] + rnorm(sum(ind), 5, 1/12)
+
+y = sample(heart)
+ind = rbinom(length(y), 1, 0.5) == 1
+y[ind] = y[ind] + rnorm(sum(ind), 2, 1/3)
+
+x
+y
+
+m1 <- lm(target ~ trestbps + age)
+summary(m1)
+anova(m1)
+
 
 library(perturb)
+set.seed(1234)
+p1 <- perturb(m1, pvars=c("trestbps", "age"), prange=c(1,1), niter=200, uniform = TRUE)
+p2 <- perturb(m1, pvars=c("trestbps", "age"), prange = c(10,10), niter=200, uniform = TRUE)
+p1
+p2
 
-perturb(heart )
+```
+
+Uniform Distribution:
+```{r}
+ggplot(x,aes(x=target, y=age, fill=target)) +
+geom_boxplot() +
+facet_wrap(~ sex)+
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+ggplot(y,aes(x=target, y=age, fill=target)) +
+geom_boxplot() +
+facet_wrap(~ sex)+
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+
+
+```
+
+
+Gaussain Distribution:
+```{r}
+x2 = sample(heart)
+ind = rbinom(length(x2), 1, 0.5) == 1
+x2[ind] = x2[ind] + rnorm(sum(ind), 0, 1)
+
+y2 = sample(heart)
+ind = rbinom(length(y2), 1, 0.5) == 1
+y2[ind] = y2[ind] + rnorm(sum(ind), 0, 1.23)
+
+x2
+y2
+
+m1 <- lm(target ~ trestbps + age)
+summary(m1)
+anova(m1)
+
+
+library(perturb)
+set.seed(1234)
+p1 <- perturb(m1, pvars=c("trestbps", "age"), prange=c(1,1), niter=200)
+p2 <- perturb(m1, pvars=c("trestbps", "age"), prange = c(10,10), niter=200)
+p1
+p2
 ```
 
 
 
+Gaussain Plots:
+```{r}
+ggplot(x,aes(x=target, y=age, fill=target)) +
+geom_boxplot() +
+facet_wrap(~sex) +
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
 
-Gaussain Distribution (2 plots):
+ggplot(y,aes(x=target, y=age, fill=target)) +
+geom_boxplot() +
+facet_wrap(~ sex)+
+scale_fill_manual(values=c("#97BE11","#DC1E0B"))
+```
+
+
 
 
 
