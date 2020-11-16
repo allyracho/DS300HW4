@@ -381,16 +381,16 @@ Uniform Distribution:
 library(car)
 attach(heart)
 
-x = sample(heart)
-ind = rbinom(length(x), 1, 0.5) == 1
-x[ind] = x[ind] + rnorm(sum(ind), 5, 1/12)
+perturbedUniform1 = sample(heart)
+ind = rbinom(length(perturbedUniform1), 1, 0.5) == 1
+perturbedUniform1[ind] = perturbedUniform1[ind] + rnorm(sum(ind), 5, 1/12)
 
-y = sample(heart)
-ind = rbinom(length(y), 1, 0.5) == 1
-y[ind] = y[ind] + rnorm(sum(ind), 2, 1/3)
+perturbedUniform2 = sample(heart)
+ind = rbinom(length(perturbedUniform2), 1, 0.5) == 1
+perturbedUniform2[ind] = perturbedUniform2[ind] + rnorm(sum(ind), 2, 1/3)
 
-x
-y
+perturbedUniform1
+perturbedUniform2
 
 m1 <- lm(target ~ trestbps + age)
 summary(m1)
@@ -408,12 +408,12 @@ p2
 
 Uniform Distribution:
 ```{r}
-ggplot(x,aes(x=target, y=age, fill=target)) +
+ggplot(perturbedUniform1,aes(x=target, y=age, fill=target)) +
 geom_boxplot() +
 facet_wrap(~ sex)+
 scale_fill_manual(values=c("#97BE11","#DC1E0B"))
 
-ggplot(y,aes(x=target, y=age, fill=target)) +
+ggplot(perturbedUniform2,aes(x=target, y=age, fill=target)) +
 geom_boxplot() +
 facet_wrap(~ sex)+
 scale_fill_manual(values=c("#97BE11","#DC1E0B"))
@@ -424,16 +424,16 @@ scale_fill_manual(values=c("#97BE11","#DC1E0B"))
 
 Gaussain Distribution:
 ```{r}
-x2 = sample(heart)
-ind = rbinom(length(x2), 1, 0.5) == 1
-x2[ind] = x2[ind] + rnorm(sum(ind), 0, 1)
+perturbedGaussain1 = sample(heart)
+ind = rbinom(length(perturbedGaussain1), 1, 0.5) == 1
+perturbedGaussain1[ind] = perturbedGaussain1[ind] + rnorm(sum(ind), 0, 1)
 
-y2 = sample(heart)
-ind = rbinom(length(y2), 1, 0.5) == 1
-y2[ind] = y2[ind] + rnorm(sum(ind), 0, 1.23)
+perturbedGaussain2 = sample(heart)
+ind = rbinom(length(perturbedGaussain2), 1, 0.5) == 1
+perturbedGaussain2[ind] = perturbedGaussain2[ind] + rnorm(sum(ind), 0, 3)
 
-x2
-y2
+perturbedGaussain1
+perturbedGaussain2
 
 m1 <- lm(target ~ trestbps + age)
 summary(m1)
@@ -452,12 +452,12 @@ p2
 
 Gaussain Plots:
 ```{r}
-ggplot(x,aes(x=target, y=age, fill=target)) +
+ggplot(perturbedGaussain1,aes(x=target, y=age, fill=target)) +
 geom_boxplot() +
 facet_wrap(~sex) +
 scale_fill_manual(values=c("#97BE11","#DC1E0B"))
 
-ggplot(y,aes(x=target, y=age, fill=target)) +
+ggplot(perturbedGaussain2,aes(x=target, y=age, fill=target)) +
 geom_boxplot() +
 facet_wrap(~ sex)+
 scale_fill_manual(values=c("#97BE11","#DC1E0B"))
