@@ -465,6 +465,27 @@ scale_fill_manual(values=c("#97BE11","#DC1E0B"))
 
 
 
+```{r}
+library(zip)
+
+# Create two dataframes using inbuilt datasets for reproducible code
+PU1 <- perturbedUniform1
+PU2 <- perturbedUniform2
+PG1 <- perturbedGaussain1
+PG2 <- perturbedGaussain2
+
+# Write the files as CSV into working directory
+write.csv(PU1, file = "PU1.csv", row.names = FALSE, quote = FALSE)
+write.csv(PU2, file = "PU2.csv", row.names = FALSE, quote = FALSE)
+write.csv(PG1, file = "PG1.csv", row.names = FALSE, quote = FALSE)
+write.csv(PG2, file = "PG2.csv", row.names = FALSE, quote = FALSE)
+
+# Read the 2 CSV file names from working directory
+Zip_Files <- list.files(path = getwd(), pattern = ".csv$")
+
+# Zip the files and place the zipped file in working directory
+zip::zip(zipfile = "DS300HW4", files = Zip_Files)
+```
 
 
 
