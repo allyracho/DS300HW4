@@ -383,7 +383,7 @@ attach(heart)
 
 perturbedUniform1 = sample(heart)
 ind = rbinom(length(perturbedUniform1), 1, 0.5) == 1
-perturbedUniform1[ind] = perturbedUniform1[ind] + rnorm(sum(ind), 5, 1/12)
+perturbedUniform1[ind] = perturbedUniform1[ind] + rnorm(sum(ind), 3/2, 1/12)
 
 perturbedUniform2 = sample(heart)
 ind = rbinom(length(perturbedUniform2), 1, 0.5) == 1
